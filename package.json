@@ -1,0 +1,17 @@
+{
+  "name": "correctiv-ipfs",
+  "version": "1.0.0",
+  "description": "Compiles articles by https://correctiv.org into PDFs and pushes them to IPFS.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aarnav Bos",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "fetch": "^1.1.0",
+    "node-fetch": "^2.2.0",
+    "wkhtmltopdf": "^0.3.4"
+  }
+}
