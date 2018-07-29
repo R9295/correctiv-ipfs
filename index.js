@@ -5,41 +5,36 @@ const fs = require('fs')
 const Parser = require('rss-parser');
 const IPFS = require('ipfs-api')
 const parser = require('./parse')
+const express = require('express')
 
-let rssParser = new Parser();
+//let rssParser = new Parser();
 const ipfs = IPFS('127.0.0.1', '5001',{protocol:'http'})
+const server = express()
+server.use(express.json())
 
 
-const sm = () => {
-  return new Promise(async (resolve, reject) => {
-    const feed = await rssParser.parseURL('https://correctiv.org/artikel/feeds/')
-    const keys = Object.keys(feed.items[0])
-    resolve(feed.items[0].link)
-
-  })
-
-  // reverse to get oldest first
-  //feed.items.reverse().forEach(item => {
-    // /console.log(item.title + ':' + item.link)
-  //});
-}
-sm().then(async(article) => {
-  const res = await fetch(article)
-  const html = await res.text()
-  console.log(html)
-  const $ = cheerio.load(html)
-  parser.parseHTML($)
-  parser.writeHTML($).then(data => {
-    // create PDF
-    phantom.create().then(instance => {
-      instance.createPage().then(async(page) => {
-        await page.property('viewportSize', { width: 600, height: 800 })
-        await page.property('paperSize',{format: 'A3', orientation: 'portrait'})
-        //const _ = await fs.readFileSync('./something.html').toString()
-        await page.open('./something.html')
-        await page.render('out.pdf')
-        instance.exit()
-      })
-    })
-  })
+server.get('/', (req, res) => {
+  res.send({hello:'world'})
 })
+server.post('/api/v0/add', async (req, res) => {
+  const json = req.body
+  const article = await fetch(json.article)
+  const html = await article.text()
+  const $ = cheerio.load(html)
+  const parsed = parser.parseHTML($)
+  await parser.writeHTML(parsed)
+  const instance = await phantom.create(['--web-security=no', '--local-to-remote-url-access=true'])
+  const page = await instance.createPage()
+  await page.property('viewportSize', { width: 600, height: 800 })
+  await page.property('paperSize',{format: 'A3', orientation: 'portrait'})
+  await page.on('onResourceError',(err) => {
+    //  console.log(err)
+  })
+  await page.open('something.html')
+  await page.render('2.pdf')
+  instance.exit()
+  res.send({'res':'Done'})
+
+})
+
+server.listen(3001,'0.0.0.0', () => console.log('on!'));

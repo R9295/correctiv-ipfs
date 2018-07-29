@@ -73,6 +73,7 @@ const removeElements = ($) => {
     '.callout',
     // nav
     '.nav-primary',
+    //'.article-body__main',
   ]
 
   to_rm.forEach(item => {
@@ -99,8 +100,17 @@ const rePosition = ($) => {
   )
   $('body').css('page-break-inside', 'avoid !imporant')
 }
+const handleIframe = ($) => {
+  $('iframe').each(function(i, elem){
+    // TODO make sure the all the iframes are wrapped in a parent container or the whole body might get deleted
+    $(this).parent().replaceWith(`!!! MESSGE FROM THE DEVELOPER: There was a resource here which couldn't \n
+    be embedded into a PDF, <a href='${$(this).attr('src')}' style='text-decoration: underline !important;'>here is a link to it</a<`)
+    $(this).remove()
+  })
+}
 exports.parseHTML = ($) => {
     parseLinks($)
+    handleIframe($)
     removeElements($)
     rePosition($)
     return $
