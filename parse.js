@@ -73,7 +73,7 @@ const removeElements = ($) => {
     '.callout',
     // nav
     '.nav-primary',
-    //'.article-body__main',
+    '.article-body__sharing',
   ]
 
   to_rm.forEach(item => {
@@ -83,17 +83,27 @@ const removeElements = ($) => {
 
 const rePosition = ($) => {
   $('.footer__language').attr('align', 'center')
-
+  $('link').each(function(i, elem){
+    if ($(this).attr('href') == 'https://correctiv.org/static/CACHE/css/00d6d5083152.css'){
+      $(this).attr('href', 'f.css')
+    }
+  })
   // cleanup links showing the URL in the pdf and add some page breaking rules
   $('head').append(
+
     `
       <style>
       a::after {
        content: "" !important;
-       text-decoration: underline !important;
+      }
+      .article-body__author-name {
+        text-decoration: underline !important;
       }
       body{
         page-break-inside: avoid !important;
+      }
+      .responsive-iframe {
+        font-style: italic !important;
       }
       </style>
         `
@@ -103,8 +113,9 @@ const rePosition = ($) => {
 const handleIframe = ($) => {
   $('iframe').each(function(i, elem){
     // TODO make sure the all the iframes are wrapped in a parent container or the whole body might get deleted
-    $(this).parent().replaceWith(`!!! MESSGE FROM THE DEVELOPER: There was a resource here which couldn't \n
-    be embedded into a PDF, <a href='${$(this).attr('src')}' style='text-decoration: underline !important;'>here is a link to it</a<`)
+    // This probably needs a german translation
+    $(this).parent().replaceWith(`<p style="font-style: italic !important;">!!! MESSGE FROM THE DEVELOPER: There was a resource here which couldn't \n
+    be embedded into a PDF, <a href='${$(this).attr('src')}' style='text-decoration: underline !important;'>here is a link to it</a> !!!</p>`)
     $(this).remove()
   })
 }
