@@ -13,6 +13,7 @@
     "express": "^4.16.3",
     "fetch": "^1.1.0",
     "ipfs-api": "^22.2.4",
+    "nanoid": "^1.1.0",
     "node-fetch": "^2.2.0",
     "phantom": "^6.0.3",
     "rss-parser": "^3.4.2"

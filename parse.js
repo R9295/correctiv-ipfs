@@ -113,7 +113,7 @@ const rePosition = ($) => {
 const handleIframe = ($) => {
   $('iframe').each(function(i, elem){
     // TODO make sure the all the iframes are wrapped in a parent container or the whole body might get deleted
-    // This probably needs a german translation
+    // This probably needs a German translation
     $(this).parent().replaceWith(`<p style="font-style: italic !important;">!!! MESSGE FROM THE DEVELOPER: There was a resource here which couldn't \n
     be embedded into a PDF, <a href='${$(this).attr('src')}' style='text-decoration: underline !important;'>here is a link to it</a> !!!</p>`)
     $(this).remove()
@@ -128,7 +128,7 @@ exports.parseHTML = ($) => {
 }
 exports.writeHTML = ($) => {
   return new Promise(async (resolve, reject) => {
-    await fs.writeFileSync('something.html', Buffer.from($.html()))
+    await fs.writeFileSync('temp.html', Buffer.from($.html()))
     resolve()
 })
 }
