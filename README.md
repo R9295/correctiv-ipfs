@@ -1,4 +1,4 @@
-# correctiv-ipfs
+# correctiv-ipfs-archive
 Compiles articles by https://correctiv.org into PDFs and pushes them to IPFS.
 
 ### Warning:
