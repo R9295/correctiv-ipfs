@@ -1,8 +1,6 @@
-const phantom = require('phantom')
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 const fs = require('fs')
-const Parser = require('rss-parser');
 const IPFS = require('ipfs-api')
 const parser = require('./parse')
 const express = require('express')
@@ -24,7 +22,7 @@ server.post('/api/v0/add', async (req, res) => {
   const parsed = await parser.parseHTML($)
   await parser.writeHTML($, article_id)
   const _ = fs.readFileSync(`${article_id}.html`)
-  res.send({'res':'Done'})
+  res.send({'res':article_id})
   let file = fs.readFileSync(`${article_id}.html`)
   file = await ipfs.add(file)
   console.log(`added file: ${article_id}.html. Hash is ${file[0].hash}`)

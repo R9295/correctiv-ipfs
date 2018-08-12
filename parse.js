@@ -30,7 +30,7 @@ parseLinks = ($) => {
   return $
 }
 
-const toB64 = async ($, element, attribute) => {
+const toB64 = async ($, element, attribute, target) => {
   let p = []
   $(element).each((i, elem) => {
     // this is the modified C
@@ -42,18 +42,22 @@ const toB64 = async ($, element, attribute) => {
           encoding: null,
         })
         // Add respective data headers to B64 data,
-        // TODO CLEAN THIS UP
-        const _base64 =  req.toString('base64')
+        // TODO handle GIFs
+        let _base64 =  req.toString('base64')
         if (elem.attribs[attribute].indexOf('svg') != -1){
-          elem.attribs[attribute] = `data:image/svg+xml;base64,${_base64}`
+          _base64 = `data:image/svg+xml;base64,${_base64}`
         } else if (elem.attribs[attribute].indexOf('.css') != -1) {
-          elem.attribs[attribute] = `data:text/css;base64,${_base64}`
+          _base64 = `data:text/css;base64,${_base64}`
         } else if (elem.attribs[attribute].indexOf('.png') != -1){
           elem.attribs.type = `image/png`
-          elem.attribs[attribute] = `data:image/png;base64,${_base64}`
+          _base64 = `data:image/png;base64,${_base64}`
         } else if (elem.attribs[attribute].indexOf('.jpg') != -1 || elem.attribs[attribute].indexOf('.jpeg') != -1){
           elem.attribs.type = `image/jpeg`
-          elem.attribs[attribute] = `data:image/jpeg;base64,${_base64}`
+          _base64 = `data:image/jpeg;base64,${_base64}`
+        }
+        if (target){
+          elem.attribs[target] = _base64
+          elem.attribs[attribute] = '#'
         } else {
           elem.attribs[attribute] = _base64
         }
@@ -154,19 +158,45 @@ const handleIframe = ($) => {
     $(this).remove()
   })
 }
+const handleLazyImages = ($) => {
+
+  $('body').append(
+  `
+  <script>
+    window.addEventListener("load", function(){
+    var imgs = document.querySelectorAll('[lsrc]')
+    console.log(1)
+    imgs.forEach(function(item){
+      item.onload = function() {
+        item.removeAttribute('lsrc');
+      }
+      if (item.srcset){
+        item.setAttribute('srcset', item.getAttribute('lsrc'))
+        } else {
+        item.setAttribute('src', item.getAttribute('lsrc'))
+      }
+    })
+    })
+  </script>
+  `
+  )
+}
 exports.parseHTML = async ($) => {
     parseLinks($)
     handleIframe($)
     removeElements($)
     rePosition($)
-    await toB64($, 'img', 'src')
+    // setting target to allow lazy loading images
+    await toB64($, 'img', 'src', 'lsrc')
     await toB64($, 'link', 'href')
-    await toB64($, 'source', 'srcset')
+    await toB64($, 'source', 'srcset', 'lsrc')
+    handleLazyImages($)
     return $
 }
 exports.writeHTML = ($, id) => {
   return new Promise(async (resolve, reject) => {
     await fs.writeFileSync(`${id}.html`, Buffer.from($.html()))
+    //await fs.writeFileSync(`temp.html`, Buffer.from($.html()))
     resolve()
 })
 }
