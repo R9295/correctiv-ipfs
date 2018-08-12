@@ -32,8 +32,39 @@ parseLinks = ($) => {
 
 const toB64 = async ($, element, attribute, target) => {
   let p = []
+  // allowed extensions
+  const allowed = {
+    'css': {
+      data_attr:'data:text/css;base64, '
+      },
+     'svg': {
+       data_attr:'data:image/svg+xml;base64, '
+      },
+    'png': {
+      data_attr:'data:image/png;base64, ',
+      attr_type:'image/png'
+    },
+    'jpg': {
+      data_attr:'data:image/jpeg;base64, ',
+      attr_type:'image/jpeg'
+    },
+    'jpeg': {
+      data_attr:'data:image/jpeg;base64, ',
+      attr_type:'image/jpeg'
+    },
+
+    'gif': {
+      data_attr:'data:image/gif;base64, ',
+      attr_type:'image/gif'
+    },
+
+  }
   $(element).each((i, elem) => {
     // this is the modified C
+    // TODO
+    // check if this file is allowed to be converted
+    const fileType = elem.attribs[attribute].split('.').pop()
+    if (allowed.hasOwnProperty(fileType)){
     p.push(
       new Promise(async (resolve, reject) => {
         const req = await request({
@@ -41,30 +72,23 @@ const toB64 = async ($, element, attribute, target) => {
           method: 'GET',
           encoding: null,
         })
+        // TODO check GIF bug
         // Add respective data headers to B64 data,
-        // TODO handle GIFs
-        let _base64 =  req.toString('base64')
-        if (elem.attribs[attribute].indexOf('svg') != -1){
-          _base64 = `data:image/svg+xml;base64,${_base64}`
-        } else if (elem.attribs[attribute].indexOf('.css') != -1) {
-          _base64 = `data:text/css;base64,${_base64}`
-        } else if (elem.attribs[attribute].indexOf('.png') != -1){
-          elem.attribs.type = `image/png`
-          _base64 = `data:image/png;base64,${_base64}`
-        } else if (elem.attribs[attribute].indexOf('.jpg') != -1 || elem.attribs[attribute].indexOf('.jpeg') != -1){
-          elem.attribs.type = `image/jpeg`
-          _base64 = `data:image/jpeg;base64,${_base64}`
+        let _base64 =  `${allowed[fileType].data_attr}${req.toString('base64')}`
+        // add attr type if needed(images need this in <source>)
+        if (allowed[fileType].hasOwnProperty('attr_type')){
+          elem.attribs.type = allowed[fileType].attr_type
         }
+        // set target for lazy loading
         if (target){
           elem.attribs[target] = _base64
           elem.attribs[attribute] = '#'
-        } else {
-          elem.attribs[attribute] = _base64
         }
-        resolve()
+          resolve()
       })
     )
-  })
+  }
+})
   await Promise.all(p)
 }
 
@@ -187,6 +211,7 @@ exports.parseHTML = async ($) => {
     removeElements($)
     rePosition($)
     // setting target to allow lazy loading images
+    // has to be lsrc, if needed to change, change the value in handleLazyImages
     await toB64($, 'img', 'src', 'lsrc')
     await toB64($, 'link', 'href')
     await toB64($, 'source', 'srcset', 'lsrc')
@@ -196,7 +221,6 @@ exports.parseHTML = async ($) => {
 exports.writeHTML = ($, id) => {
   return new Promise(async (resolve, reject) => {
     await fs.writeFileSync(`${id}.html`, Buffer.from($.html()))
-    //await fs.writeFileSync(`temp.html`, Buffer.from($.html()))
     resolve()
 })
 }
